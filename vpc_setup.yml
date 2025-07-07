@@ -13,7 +13,7 @@
         dns_support: yes
         dns_hostnames: yes
         tenancy: default
-        state: "{state}}"
+        state: "{{state}}"
       register: vpcout
 
     - name: Create subnet 1 in zone 1
@@ -21,7 +21,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone1 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PubSub1Cidr }}"
         map_public: yes
         resource_tags:
@@ -33,7 +33,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone2 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PubSub2Cidr }}"
         map_public: yes
         resource_tags:
@@ -45,7 +45,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone3 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PubSub3Cidr }}"
         map_public: yes
         resource_tags:
@@ -57,7 +57,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone1 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PrivSub1Cidr }}"
         resource_tags:
           Name: vprofile-privsub1
@@ -68,7 +68,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone2 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PrivSub2Cidr }}"
         resource_tags:
           Name: vprofile-privsub2
@@ -79,7 +79,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone3 }}"
-        state: "{state}}"
+        state: "{{state}}"
         cidr: "{{ PrivSub3Cidr }}"
         resource_tags:
           Name: vprofile-privsub3
