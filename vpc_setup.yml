@@ -59,7 +59,7 @@
         az: "{{ zone1 }}"
         state: "{{ state }}"
         cidr: "{{ PrivSub1Cidr }}"
-        map_public: no  # Changed to no for private subnets
+        map_public: yes
         resource_tags:
           Name: vprofile-privsub1
       register: privsub1_out
@@ -71,7 +71,7 @@
         az: "{{ zone2 }}"
         state: "{{ state }}"
         cidr: "{{ PrivSub2Cidr }}"
-        map_public: no  # Changed to no for private subnets
+        map_public: yes
         resource_tags:
           Name: vprofile-privsub2
       register: privsub2_out
@@ -83,7 +83,7 @@
         az: "{{ zone3 }}"
         state: "{{ state }}"
         cidr: "{{ PrivSub3Cidr }}"
-        map_public: no  # Changed to no for private subnets
+        map_public: yes
         resource_tags:
           Name: vprofile-privsub3
       register: privsub3_out
@@ -104,11 +104,14 @@
         state: "{{ state }}"
         resource_tags:
           name: vprofile_pubRT
-        subnets:
-          - "{{ pubsub1_out.subnet.id }}"
-          - "{{ pubsub2_out.subnet.id }}"
-          - "{{ pubsub3_out.subnet.id }}"
-        routes:
-          - dest: 0.0.0.0/0
-            gateway_id: "{{ igw_out.gateway_id }}"
+          subnets:
+            - "{{ pubsub1_out.subnet.id }}"
+            - "{{ pubsub2_out.subnet.id }}"
+            - "{{ pubsub3_out.subnet.id }}"
+          routes:
+            - dest: 0.0.0.0/0
+              gateway_id: "{{ igw_out.gateway_id }}"
       register: pubRT_out
+
+
+
