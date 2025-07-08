@@ -13,7 +13,7 @@
         dns_support: yes
         dns_hostnames: yes
         tenancy: default
-        state: "{{state}}"
+        state: "{{ state }}"
       register: vpcout
 
     - name: Create subnet 1 in zone 1
@@ -21,7 +21,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone1 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PubSub1Cidr }}"
         map_public: yes
         resource_tags:
@@ -33,7 +33,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone2 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PubSub2Cidr }}"
         map_public: yes
         resource_tags:
@@ -45,7 +45,7 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone3 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PubSub3Cidr }}"
         map_public: yes
         resource_tags:
@@ -57,8 +57,9 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone1 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PrivSub1Cidr }}"
+        map_public: no
         resource_tags:
           Name: vprofile-privsub1
       register: privsub1_out
@@ -68,8 +69,9 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone2 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PrivSub2Cidr }}"
+        map_public: no
         resource_tags:
           Name: vprofile-privsub2
       register: privsub2_out
@@ -79,8 +81,9 @@
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         az: "{{ zone3 }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         cidr: "{{ PrivSub3Cidr }}"
+        map_public: no
         resource_tags:
           Name: vprofile-privsub3
       register: privsub3_out
@@ -89,30 +92,30 @@
       ec2_vpc_igw:
         vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
-        state: "{{state}}"
+        state: "{{ state }}"
         resource_tags:
           Name: vprofile_IGW
       register: igw_out
 
     - name: Set up public subnet route table
       ec2_vpc_route_table:
-        vpc_id: "{{vpcout.vpc.id}}"
+        vpc_id: "{{ vpcout.vpc.id }}"
         region: "{{ region }}"
         tags:
           Name: VProfile-PubRT
         subnets:
-          - "{{pubsub1_out.subnet.id}}"
-          - "{{pubsub2_out.subnet.id}}"
-          - "{{pubsub3_out.subnet.id}}"
+          - "{{ pubsub1_out.subnet.id }}"
+          - "{{ pubsub2_out.subnet.id }}"
+          - "{{ pubsub3_out.subnet.id }}"
         routes:
           - dest: 0.0.0.0/0
-            gateway_id: "{{igw_out.gateway_id}}"
+            gateway_id: "{{ igw_out.gateway_id }}"
       register: pubRT_out
 
-    - name: Create new nat gateway and allocate new EIP if a nat gateway in the VPC
+    - name: Create new NAT gateway and allocate new EIP if a NAT gateway exists in the VPC
       ec2_vpc_nat_gateway:
-        state: "{{state}}"
-        subnet_id: "{{pubsub1_out.subnet.id}}"
+        state: "{{ state }}"
+        subnet_id: "{{ pubsub1_out.subnet.id }}"
         wait: yes
         region: "{{ region }}"
         if_exist_do_not_create: true
@@ -130,11 +133,11 @@
           - "{{ privsub3_out.subnet.id }}"
         routes:
           - dest: 0.0.0.0/0
-            gateway_id: "{{ NATGW_out.nat_gateway_id }}"
+            gateway_id: "{{ NATGW_out.nat_gateway.id }}"
       register: privRT_out
 
     - debug:
-        var: "{{item}}"
+        var: "{{ item }}"
       loop:
         - vpcout.vpc.id
         - pubsub1_out.subnet.id
@@ -145,24 +148,35 @@
         - privsub3_out.subnet.id
         - igw_out.gateway_id
         - pubRT_out.route_table.id
-        - NATGW_out.nat_gateway_id
+        - NATGW_out.nat_gateway.id
         - privRT_out.route_table.id
+
     - set_fact:
-        vpc_id: "{{vpcout.vpc.id}}"
-        pubsub1id: "{{pubsub1_out.subnet.id}}"
-        pubsub2id: "{{pubsub2_out.subnet.id}}"
-        pubsub3id: "{{pubsub3_out.subnet.id}}"
-        privsub1id: "{{privsub1_out.subnet.id}}"
-        privsub2id: "{{privsub2_out.subnet.id}}"
-        privsub3id: "{{privsub3_out.subnet.id}}"
-        igwid: "{{igw_out.gateway_id}}"
-        pubRTid: "{{pubRT_out.route_table.id}}"
-        NATGWid: "{{NATGW_out.nat_gateway_id}}"
-        privRTid: "{{privRT_out.route_table.id}}"
+        vpc_id: "{{ vpcout.vpc.id }}"
+        pubsub1id: "{{ pubsub1_out.subnet.id }}"
+        pubsub2id: "{{ pubsub2_out.subnet.id }}"
+        pubsub3id: "{{ pubsub3_out.subnet.id }}"
+        privsub1id: "{{ privsub1_out.subnet.id }}"
+        privsub2id: "{{ privsub2_out.subnet.id }}"
+        privsub3id: "{{ privsub3_out.subnet.id }}"
+        igwid: "{{ igw_out.gateway_id }}"
+        pubRTid: "{{ pubRT_out.route_table.id }}"
+        NATGWid: "{{ NATGW_out.nat_gateway.id }}"
+        privRTid: "{{ privRT_out.route_table.id }}"
         cacheable: yes
 
-    - name: Create variables file for vpc output
+    - name: Create variables file for VPC output
       copy:
-        content: "vpc_id: {{vpcout.vpc.id}}\n pubsub1id: {{pubsub1_out.subnet.id}}\n pubsub2id: {{pubsub2_out.subnet.id}}\n pubsub3id: {{pubsub3_out.subnet.id}}\n privsub1id: {{privsub1_out.subnet.id}}\n privsub1id: {{privsub1_out.subnet.id}}\n privsub2id: {{privsub2_out.subnet.id}}/n   privsub3id: {{privsub3_out.subnet.id}}\n igwid: {{igw_out.gateway_id}}\n pubRTid: {{pubRT_out.route_table.id}}\n NATGWid: {{NATGW_out.nat_gateway_id}}\n privRTid: {{privRT_out.route_table.id}}"
+        content: |
+          vpc_id: {{ vpcout.vpc.id }}
+          pubsub1id: {{ pubsub1_out.subnet.id }}
+          pubsub2id: {{ pubsub2_out.subnet.id }}
+          pubsub3id: {{ pubsub3_out.subnet.id }}
+          privsub1id: {{ privsub1_out.subnet.id }}
+          privsub2id: {{ privsub2_out.subnet.id }}
+          privsub3id: {{ privsub3_out.subnet.id }}
+          igwid: {{ igw_out.gateway_id }}
+          pubRTid: {{ pubRT_out.route_table.id }}
+          NATGWid: {{ NATGW_out.nat_gateway.id }}
+          privRTid: {{ privRT_out.route_table.id }}
         dest: vars/output_vars
-        ###
