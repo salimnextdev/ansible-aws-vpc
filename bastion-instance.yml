@@ -9,4 +9,50 @@
 
     - name: Import VPC setup variable
       include_vars: vars/output/vars
-      ###
+
+    - name: Create vporfile ec2 key
+      ec2_key:
+        name: vprofile-key
+        region: "{{region}}"
+        register: key_out
+
+    - name: Save private key into file bastion-key.pem
+      copy:
+        content: "{{key_out.private_key}}"
+        dest: "./bastion-key.pem"
+        mode: 0600
+      when: kry_out.changed
+
+    - name: Create SG for bastion host
+      ec2_group:
+        name: bastion-host-sg
+        description: Allow port 22 from everywhere
+        region: "{{region}}"
+        vpc_id: {{vp}}
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: "{{MYIP}}"
+        register: bastionSG_out
+
+    - name: Creating Bastion Host
+      ec2:
+        key_name: vprofile-key
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{ bastion_ami }}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "bastion Host"
+          Project: Vprofile
+          Owner: DevOps Team
+        exact_count: 1
+        count_tag:
+          Name: "bastion Host"
+          Project: Vprofile
+          Owner: DevOps Team
+        group_id: "{{BastionSG_out.group_id}}"
+      register: bastionHost_out
+      #
